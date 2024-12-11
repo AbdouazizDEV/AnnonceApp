@@ -6,10 +6,15 @@ import DatabaseFactory from '../services/DatabaseFactory.js';
 import CloudinaryService from '../services/CloudinaryService.js';
 
 class AuthController {
-    constructor(dbType = 'firebase') { // ou 'firebase'ou 'mysql'
+    /* constructor(dbType = 'firebase') { // ou 'firebase'ou 'mysql'
         this.db = DatabaseFactory.getDatabase(dbType);
-    }
-
+    } */
+    /* constructor(dbType = process.env.DATABASE_TYPE || 'mysql') { 
+        this.db = DatabaseFactory.getDatabase(dbType);
+    } */
+        constructor() {
+            this.db = DatabaseFactory.getDatabase(process.env.DATABASE_TYPE || 'mysql');
+        }
     async register(req, res) {
         let cloudinaryId = null; // Déclarer la variable en dehors du try
         try {
@@ -100,6 +105,93 @@ class AuthController {
             res.status(400).json({
                 success: false,
                 message: error.message
+            });
+        }
+    }
+    async login(req, res) {
+        try {
+            const { email, password } = req.body;
+
+            // Vérifier que les champs requis sont présents
+            if (!email || !password) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Email et mot de passe requis'
+                });
+            }
+
+            // Rechercher l'utilisateur
+            let user;
+            try {
+                user = await this.db.findByField('Utilisateurs', 'email', email);
+            } catch (dbError) {
+                console.error('Database error:', dbError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erreur lors de la recherche de l\'utilisateur'
+                });
+            }
+
+            if (!user) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Email ou mot de passe incorrect'
+                });
+            }
+
+            // Vérifier le mot de passe
+            let isPasswordValid;
+            try {
+                isPasswordValid = await bcrypt.compare(password, user.password);
+            } catch (bcryptError) {
+                console.error('Password comparison error:', bcryptError);
+                return res.status(500).json({
+                    success: false,
+                    message: 'Erreur lors de la vérification du mot de passe'
+                });
+            }
+
+            if (!isPasswordValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Email ou mot de passe incorrect'
+                });
+            }
+
+            // Générer le token JWT
+            const token = jwt.sign(
+                {
+                    id: user.id,
+                    email: user.email,
+                    profile_id: user.profile_id
+                },
+                process.env.JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+
+            // Retourner les informations de l'utilisateur et le token
+            res.status(200).json({
+                success: true,
+                message: 'Connexion réussie',
+                data: {
+                    user: {
+                        id: user.id,
+                        nom: user.nom,
+                        prenom: user.prenom,
+                        email: user.email,
+                        tel: user.tel,
+                        photo: user.photo,
+                        profile_id: user.profile_id
+                    },
+                    token
+                }
+            });
+
+        } catch (error) {
+            console.error('Login error:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Erreur lors de la connexion'
             });
         }
     }

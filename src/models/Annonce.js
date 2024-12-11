@@ -13,6 +13,7 @@ class Annonce extends BaseModel {
         this.date_creation = data.date_creation || new Date();
         this.date_update = data.date_update || new Date();
         this.categorie_id = data.categorie_id || null;
+        this.user_id = data.user_id || null;  // Ajout de l'ID utilisateur
     }
 
     validate() {
@@ -35,10 +36,11 @@ class Annonce extends BaseModel {
             image: this.image,
             etat: this.etat,
             validate: this.validate,
-            cloudinary_id: this.cloudinary_id,  // Ajout du cloudinary_id
+            cloudinary_id: this.cloudinary_id,
             date_creation: this.date_creation,
             date_update: this.date_update,
-            categorie_id: this.categorie_id
+            categorie_id: this.categorie_id,
+            user_id: this.user_id  // Inclure l'ID utilisateur
         };
     }
 }

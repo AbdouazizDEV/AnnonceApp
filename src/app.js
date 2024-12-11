@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import annoncesRoutes from './routes/annonces.js';
 import authRoutes from './routes/auth.js';
+import userRoutes from './routes/users.js';
 
 dotenv.config();
 
@@ -17,6 +18,6 @@ app.use(express.urlencoded({ extended: true }));  // Important pour form-data
 // Routes
 app.use('/api/annonces', annoncesRoutes);
 app.use('/api/auth', authRoutes);
-
+app.use('/api/users', userRoutes);
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

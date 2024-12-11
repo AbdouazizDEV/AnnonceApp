@@ -2,28 +2,16 @@
 import admin from 'firebase-admin';
 import IDatabase from '../interfaces/IDatabase.js';
 import dotenv from 'dotenv';
-import { fileURLToPath } from 'url';
+/* import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { readFileSync } from 'fs';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-dotenv.config();
-// Lire le fichier de configuration
-const serviceAccount = JSON.parse(
-    readFileSync(join(__dirname, 'annonceapp-333a7-firebase-adminsdk-ebfg2-789cfbf378.json'))
-);
-
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+import { readFileSync } from 'fs'; */
+import { db } from './firebaseConfig.js';
 
 
 class FirebaseDatabase extends IDatabase {
     constructor() {
         super();
-        this.db = admin.firestore();
+        this.db = db;
     }
 
     async create(collection, data) {
