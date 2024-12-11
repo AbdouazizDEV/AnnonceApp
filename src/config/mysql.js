@@ -47,5 +47,26 @@ class MySQLDatabase extends IDatabase {
         const [rows] = await pool.query(`SELECT * FROM ${table} WHERE ${field} =?`, [value]);
         return rows;
     }
+    async findLike(userId, annonceId) {
+        const [rows] = await pool.query(
+            'SELECT * FROM likes_annonces WHERE user_id = ? AND annonce_id = ?', 
+            [userId, annonceId]
+        );
+        return rows[0];
+    }
+    async findAllLikesForAnnonce(annonceId) {
+        const [rows] = await pool.query(
+            'SELECT * FROM likes_annonces WHERE annonce_id = ?',
+            [annonceId]
+        );
+        return rows;
+    }
+    async findAllCommentsForAnnonce(annonceId) {
+        const [rows] = await pool.query(
+            'SELECT * FROM commentaires WHERE annonce_id = ? ORDER BY created_at DESC',
+            [annonceId]
+        );
+        return rows;
+    }
 }
 export default MySQLDatabase

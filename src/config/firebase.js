@@ -67,5 +67,83 @@ class FirebaseDatabase extends IDatabase {
             return [];
         }
     }
+    // Dans la classe FirebaseDatabase
+async findByField(collection, field, value) {
+    try {
+        const snapshot = await this.db.collection(collection)
+            .where(field, '==', value)
+            .limit(1)
+            .get();
+        
+        if (snapshot.empty) {
+            return null;
+        }
+
+        const doc = snapshot.docs[0];
+        return {
+            id: doc.id,
+            ...doc.data()
+        };
+    } catch (error) {
+        console.error(`Error in findByField: ${error}`);
+        throw error;
+    }
+}
+async findLike(userId, annonceId) {
+    const snapshot = await this.db.collection('likes_annonces')
+        .where('user_id', '==', userId)
+        .where('annonce_id', '==', annonceId)
+        .limit(1)
+        .get();
+    
+    if (snapshot.empty) return null;
+    return {
+        id: snapshot.docs[0].id,
+        ...snapshot.docs[0].data()
+    };
+}
+async findAllLikesForAnnonce(annonceId) {
+    const snapshot = await this.db.collection('likes_annonces')
+        .where('annonce_id', '==', annonceId)
+        .get();
+    
+    return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+}
+async findAllCommentsForAnnonce(annonceId) {
+    const snapshot = await this.db.collection('commentaires')
+        .where('annonce_id', '==', annonceId)
+        .orderBy('created_at', 'desc')
+        .get();
+    
+    return snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    }));
+}
+async findAllCommentsForAnnonce(annonceId) {
+    try {
+        // D'abord récupérer tous les commentaires de l'annonce
+        const snapshot = await this.db.collection('commentaires')
+            .where('annonce_id', '==', annonceId)
+            .get();
+        
+        // Puis trier côté application
+        const comments = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        // Trier par date décroissante
+        return comments.sort((a, b) => {
+            return b.created_at.toDate() - a.created_at.toDate();
+        });
+    } catch (error) {
+        console.error('Error in findAllCommentsForAnnonce:', error);
+        return [];
+    }
+}
 }
 export default FirebaseDatabase;
