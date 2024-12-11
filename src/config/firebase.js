@@ -20,15 +20,29 @@ class FirebaseDatabase extends IDatabase {
     }
 
     async findById(collection, id) {
-        const doc = await this.db.collection(collection).doc(id).get();
-        return doc.exists ? { id: doc.id, ...doc.data() } : null;
+        try {
+            // Pour Firebase, assurons-nous que l'id est une chaîne
+            const docRef = this.db.collection(collection).doc(String(id));
+            const doc = await docRef.get();
+            return doc.exists ? { id: doc.id, ...doc.data() } : null;
+        } catch (error) {
+            console.error(`Error in findById: ${error}`);
+            return null;
+        }
     }
 
     async findAll(collection) {
-        const snapshot = await this.db.collection(collection).get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        try {
+            const snapshot = await this.db.collection(collection).get();
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error(`Error in findAll: ${error}`);
+            return [];
+        }
     }
-
     async update(collection, id, data) {
         await this.db.collection(collection).doc(id).update(data);
         return id;
@@ -38,14 +52,20 @@ class FirebaseDatabase extends IDatabase {
         await this.db.collection(collection).doc(id).delete();
         return id;
     }
-    async findByField(collection, field, value) {
-        const snapshot = await this.db.collection(collection)
-            .where(field, '==', value)
-            .limit(1)
-            .get();
-        
-        if (snapshot.empty) return null;
-        return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
+    async findAllByField(collection, field, value) {
+        try {
+            const snapshot = await this.db.collection(collection)
+                .where(field, '==', value)
+                .get();
+            
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error(`Error in findAllByField: ${error}`);
+            return [];
+        }
     }
 }
 export default FirebaseDatabase;

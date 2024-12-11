@@ -10,7 +10,7 @@ const __dirname = dirname(__filename);
 let firebaseApp;
 
 try {
-    const credentialsPath = join(__dirname, '../../config/annonceapp-333a7-firebase-adminsdk-ebfg2-d58e6aff54.json');
+    const credentialsPath = join(__dirname, '../../config/annonceapp-333a7-firebase-adminsdk-ebfg2-dbff771b09.json');
     console.log('Loading Firebase credentials from:', credentialsPath);
     
     const rawCredentials = readFileSync(credentialsPath);

@@ -43,5 +43,9 @@ class MySQLDatabase extends IDatabase {
         const [rows] = await pool.query(`SELECT * FROM ${table} WHERE ${field} = ?`, [value]);
         return rows[0];
     }
+    async findAllByField(table, field, value) {
+        const [rows] = await pool.query(`SELECT * FROM ${table} WHERE ${field} =?`, [value]);
+        return rows;
+    }
 }
 export default MySQLDatabase

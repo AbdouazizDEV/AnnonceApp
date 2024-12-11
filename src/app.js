@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import annoncesRoutes from './routes/annonces.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
+import adminRoutes from './routes/admin.js';
 
 dotenv.config();
 
@@ -19,5 +20,7 @@ app.use(express.urlencoded({ extended: true }));  // Important pour form-data
 app.use('/api/annonces', annoncesRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/admin', adminRoutes);
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Serveur démarré sur le port ${PORT}`));

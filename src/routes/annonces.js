@@ -19,4 +19,9 @@ router.put('/:id', verifyToken, upload.single('image'), controller.updateAnnonce
 // src/routes/annonces.js
 router.delete('/:id', verifyToken, controller.deleteAnnonce.bind(controller));
 
+// Route publique pour obtenir toutes les annonces validées
+router.get('/', controller.getAllAnnonces.bind(controller));
+
+// Route pour obtenir les catégories
+router.get('/categories', controller.getCategories.bind(controller));
 export default router;

@@ -29,15 +29,24 @@ class AnnonceController {
                 }
             }
     
-            const annonce = new Annonce({
+            /* const annonce = new Annonce({
                 titre: req.body.titre,
                 description: req.body.description,
                 image: imageUrl,
                 cloudinary_id: publicId,
                 categorie_id: req.body.categorie_id,
                 user_id: req.user.id  // Ajout de l'ID de l'utilisateur
+            }); */
+            const annonce = new Annonce({
+                titre: req.body.titre,
+                description: req.body.description,
+                image: imageUrl,
+                cloudinary_id: publicId,
+                categorie_id: req.body.categorie_id,
+                user_id: req.user.id,
+                validate: false,  // Explicitement défini
+                etat: 'en_attente' // Explicitement défini
             });
-    
             const annonceData = annonce.toDatabase();
             const id = await this.db.create('Annonces', annonceData);
     
@@ -167,6 +176,82 @@ class AnnonceController {
     
         } catch (error) {
             console.error('Delete error:', error);
+            res.status(500).json({
+                success: false,
+                message: error.message
+            });
+        }
+    }
+async getAllAnnonces(req, res) {
+    try {
+        const { categorie_id, page = 1, limit = 10 } = req.query;
+        let annonces;
+
+        console.log('Fetching annonces with categorie_id:', categorie_id);
+
+        // Si une catégorie est spécifiée
+        if (categorie_id) {
+            annonces = await this.db.findAllByField('Annonces', 'categorie_id', parseInt(categorie_id));
+        } else {
+            annonces = await this.db.findAll('Annonces');
+        }
+         // Modifier cette ligne pour accepter soit 1 soit true
+         const validatedAnnonces = annonces.filter(annonce => {
+            return annonce.validate === true || 
+                   annonce.validate === 1 || 
+                   annonce.etat === 'validee';
+        });
+        console.log('Found annonces:', annonces); // Debug
+        
+        console.log('Validated annonces:', validatedAnnonces); // Debug
+
+        // Pagination simple
+        const startIndex = (page - 1) * limit;
+        const endIndex = page * limit;
+        const paginatedAnnonces = validatedAnnonces.slice(startIndex, endIndex);
+
+        // Enrichir les données avec les informations de catégorie
+        const enrichedAnnonces = await Promise.all(paginatedAnnonces.map(async annonce => {
+            let categorie = null;
+            if (annonce.categorie_id) {
+                categorie = await this.db.findById('Categories', annonce.categorie_id);
+            }
+            return {
+                ...annonce,
+                categorie: categorie ? categorie.designation : null
+            };
+        }));
+
+        res.status(200).json({
+            success: true,
+            data: {
+                annonces: enrichedAnnonces,
+                pagination: {
+                    current_page: parseInt(page),
+                    total_pages: Math.ceil(validatedAnnonces.length / limit),
+                    total_items: validatedAnnonces.length
+                }
+            }
+        });
+
+    } catch (error) {
+        console.error('Get annonces error:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+}
+    
+    async getCategories(req, res) {
+        try {
+            const categories = await this.db.findAll('Categories');
+            res.status(200).json({
+                success: true,
+                data: categories
+            });
+        } catch (error) {
+            console.error('Get categories error:', error);
             res.status(500).json({
                 success: false,
                 message: error.message
